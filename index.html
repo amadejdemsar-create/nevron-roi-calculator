@@ -110,36 +110,51 @@ body::after {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
-.section-divider {
-  margin: 24px 0 16px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--s3);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+.params-toggle {
+  margin: 20px 0 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--s3);
+  background: none;
+  border: none;
+  padding: 8px 0;
+  transition: color 250ms ease;
+  font-family: inherit;
 }
-.section-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(255,255,255,0.06);
+.params-toggle:hover { color: var(--s4); }
+.params-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 250ms ease;
+  fill: currentColor;
 }
-.input-section--params {
+.params-toggle.is-open svg { transform: rotate(180deg); }
+.params-section {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 14px;
+  margin-top: 16px;
   margin-bottom: 48px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 350ms ease, opacity 300ms ease, margin 300ms ease;
 }
-.input-section--params .input-field {
+.params-section.is-open {
+  max-height: 300px;
+  opacity: 1;
+}
+.params-section .input-field {
   font-size: 16px;
   padding: 10px 12px;
 }
-.input-section--params .input-group {
+.params-section .input-group {
   padding: 16px;
 }
 .input-group {
@@ -293,7 +308,7 @@ body::after {
 /* Responsive */
 @media (max-width: 768px) {
   .input-section { grid-template-columns: repeat(2, 1fr); }
-  .input-section--params { grid-template-columns: repeat(2, 1fr); }
+  .params-section { grid-template-columns: repeat(2, 1fr); }
   .results-grid { grid-template-columns: repeat(2, 1fr); }
   .title-section h1 { font-size: 28px; }
   .total-value { font-size: 40px; }
@@ -302,7 +317,7 @@ body::after {
 }
 @media (max-width: 480px) {
   .input-section { grid-template-columns: 1fr; }
-  .input-section--params { grid-template-columns: 1fr; }
+  .params-section { grid-template-columns: 1fr; }
   .results-grid { grid-template-columns: 1fr; }
   .container { padding: 32px 16px 60px; }
 }
@@ -348,9 +363,12 @@ body::after {
     </div>
   </div>
 
-  <div class="section-divider">Parametri storitev</div>
+  <button class="params-toggle" id="paramsToggle" type="button">
+    <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+    Prilagodi parametre storitev
+  </button>
 
-  <div class="input-section input-section--params">
+  <div class="params-section" id="paramsSection">
     <div class="input-group">
       <label class="input-label" for="upsellPct">Upsell konverzija (%)</label>
       <input class="input-field" type="number" id="upsellPct" value="2" min="0" max="100" step="0.1">
@@ -488,6 +506,13 @@ function calculate() {
 
 document.querySelectorAll('.input-field').forEach(function(input) {
   input.addEventListener('input', calculate);
+});
+
+var toggle = document.getElementById('paramsToggle');
+var section = document.getElementById('paramsSection');
+toggle.addEventListener('click', function() {
+  toggle.classList.toggle('is-open');
+  section.classList.toggle('is-open');
 });
 
 calculate();
