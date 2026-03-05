@@ -105,12 +105,42 @@ body::after {
   line-height: 1.5;
 }
 
-/* Input section */
+/* Input sections */
 .input-section {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
+  margin-bottom: 16px;
+}
+.section-divider {
+  margin: 24px 0 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--s3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+}
+.input-section--params {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
   margin-bottom: 48px;
+}
+.input-section--params .input-field {
+  font-size: 16px;
+  padding: 10px 12px;
+}
+.input-section--params .input-group {
+  padding: 16px;
 }
 .input-group {
   background: rgba(255,255,255,0.03);
@@ -263,6 +293,7 @@ body::after {
 /* Responsive */
 @media (max-width: 768px) {
   .input-section { grid-template-columns: repeat(2, 1fr); }
+  .input-section--params { grid-template-columns: repeat(2, 1fr); }
   .results-grid { grid-template-columns: repeat(2, 1fr); }
   .title-section h1 { font-size: 28px; }
   .total-value { font-size: 40px; }
@@ -271,6 +302,7 @@ body::after {
 }
 @media (max-width: 480px) {
   .input-section { grid-template-columns: 1fr; }
+  .input-section--params { grid-template-columns: 1fr; }
   .results-grid { grid-template-columns: 1fr; }
   .container { padding: 32px 16px 60px; }
 }
@@ -313,6 +345,36 @@ body::after {
       <label class="input-label" for="fte">Recepcija (FTE)</label>
       <input class="input-field" type="number" id="fte" value="4" min="1" max="50">
       <div class="input-suffix">Zaposleni na recepciji</div>
+    </div>
+  </div>
+
+  <div class="section-divider">Parametri storitev</div>
+
+  <div class="input-section input-section--params">
+    <div class="input-group">
+      <label class="input-label" for="upsellPct">Upsell konverzija (%)</label>
+      <input class="input-field" type="number" id="upsellPct" value="2" min="0" max="100" step="0.1">
+      <div class="input-suffix">% gostov, ki naročijo dodatno</div>
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="skipPct">Skip cleaning (%)</label>
+      <input class="input-field" type="number" id="skipPct" value="15" min="0" max="100">
+      <div class="input-suffix">% gostov, ki preskočijo čiščenje</div>
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="cleanCost">Strošek čiščenja (EUR)</label>
+      <input class="input-field" type="number" id="cleanCost" value="10" min="0" max="100">
+      <div class="input-suffix">Prihranek na sobo na dan</div>
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="earlyPct">Early/late (%)</label>
+      <input class="input-field" type="number" id="earlyPct" value="5" min="0" max="100">
+      <div class="input-suffix">% gostov, ki koristijo</div>
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="earlyPrice">Doplačilo early/late (EUR)</label>
+      <input class="input-field" type="number" id="earlyPrice" value="45" min="0" max="500">
+      <div class="input-suffix">Cena doplačila</div>
     </div>
   </div>
 
@@ -386,13 +448,18 @@ function calculate() {
   const adr = parseInt(document.getElementById('adr').value) || 0;
   const occ = parseInt(document.getElementById('occupancy').value) || 0;
   const fte = parseInt(document.getElementById('fte').value) || 0;
+  const upsellPct = parseFloat(document.getElementById('upsellPct').value) || 0;
+  const skipPct = parseInt(document.getElementById('skipPct').value) || 0;
+  const cleanCost = parseInt(document.getElementById('cleanCost').value) || 0;
+  const earlyPct = parseInt(document.getElementById('earlyPct').value) || 0;
+  const earlyPrice = parseInt(document.getElementById('earlyPrice').value) || 0;
 
   const nights = Math.round(rooms * 365 * (occ / 100));
 
   const ocena = nights * 10;
-  const upsell = nights * adr * 0.02;
-  const early = nights * 0.05 * 45;
-  const skip = nights * 0.15 * 10;
+  const upsell = nights * adr * (upsellPct / 100);
+  const early = nights * (earlyPct / 100) * earlyPrice;
+  const skip = nights * (skipPct / 100) * cleanCost;
   const recepcija = fte * 1900 * 12 * 0.35 * 0.60;
   const tisk = 4400;
   const total = ocena + upsell + early + skip + recepcija + tisk;
@@ -410,11 +477,11 @@ function calculate() {
   document.getElementById('calc-ocena').textContent =
     'Učinek višje ocene: ' + fmtN(nights) + ' \u00d7 EUR 10 = ' + fmt(ocena);
   document.getElementById('calc-upsell').textContent =
-    'Upsell: ' + fmtN(nights) + ' \u00d7 EUR ' + adr + ' \u00d7 2% = ' + fmt(upsell);
+    'Upsell: ' + fmtN(nights) + ' \u00d7 EUR ' + adr + ' \u00d7 ' + upsellPct + '% = ' + fmt(upsell);
   document.getElementById('calc-early').textContent =
-    'Early/late: ' + fmtN(nights) + ' \u00d7 5% \u00d7 EUR 45 = ' + fmt(early);
+    'Early/late: ' + fmtN(nights) + ' \u00d7 ' + earlyPct + '% \u00d7 EUR ' + earlyPrice + ' = ' + fmt(early);
   document.getElementById('calc-skip').textContent =
-    'Skip cleaning: ' + fmtN(nights) + ' \u00d7 15% \u00d7 EUR 10 = ' + fmt(skip);
+    'Skip cleaning: ' + fmtN(nights) + ' \u00d7 ' + skipPct + '% \u00d7 EUR ' + cleanCost + ' = ' + fmt(skip);
   document.getElementById('calc-recepcija').textContent =
     'Recepcija: ' + fte + ' FTE \u00d7 EUR 1.900/mes \u00d7 12 \u00d7 35% \u00d7 60% = ' + fmt(recepcija);
 }
