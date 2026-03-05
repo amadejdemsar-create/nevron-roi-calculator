@@ -137,7 +137,7 @@ body::after {
 .params-toggle.is-open svg { transform: rotate(180deg); }
 .params-section {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
   margin-top: 16px;
   margin-bottom: 48px;
@@ -394,6 +394,11 @@ body::after {
       <input class="input-field" type="number" id="earlyPrice" value="45" min="0" max="500">
       <div class="input-suffix">Cena doplačila</div>
     </div>
+    <div class="input-group">
+      <label class="input-label" for="scoreLift">Dvig ocene (točke)</label>
+      <input class="input-field" type="number" id="scoreLift" value="0.1" min="0" max="2" step="0.05">
+      <div class="input-suffix">Pričakovan dvig (npr. 0,1 ali 0,2)</div>
+    </div>
   </div>
 
   <!-- Results -->
@@ -471,10 +476,11 @@ function calculate() {
   const cleanCost = parseInt(document.getElementById('cleanCost').value) || 0;
   const earlyPct = parseInt(document.getElementById('earlyPct').value) || 0;
   const earlyPrice = parseInt(document.getElementById('earlyPrice').value) || 0;
+  const scoreLift = parseFloat(document.getElementById('scoreLift').value) || 0;
 
   const nights = Math.round(rooms * 365 * (occ / 100));
 
-  const ocena = nights * 10;
+  const ocena = nights * 10 * (scoreLift / 0.1);
   const upsell = nights * adr * (upsellPct / 100);
   const early = nights * (earlyPct / 100) * earlyPrice;
   const skip = nights * (skipPct / 100) * cleanCost;
@@ -493,7 +499,7 @@ function calculate() {
   document.getElementById('calc-osnova').innerHTML =
     '<strong>Osnova:</strong> ' + rooms + ' sob &times; 365 dni &times; ' + occ + '% zasedenost = ' + fmtN(nights) + ' letnih nočitev &nbsp;|&nbsp; ADR: EUR ' + adr;
   document.getElementById('calc-ocena').textContent =
-    'Učinek višje ocene: ' + fmtN(nights) + ' \u00d7 EUR 10 = ' + fmt(ocena);
+    'Učinek višje ocene: ' + fmtN(nights) + ' \u00d7 EUR 10 \u00d7 ' + scoreLift.toFixed(2).replace('.', ',') + '/0,1 = ' + fmt(ocena);
   document.getElementById('calc-upsell').textContent =
     'Upsell: ' + fmtN(nights) + ' \u00d7 EUR ' + adr + ' \u00d7 ' + upsellPct + '% = ' + fmt(upsell);
   document.getElementById('calc-early').textContent =
