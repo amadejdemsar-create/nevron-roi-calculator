@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nevron ROI Kalkulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --m1: #000126;
+  --m2: #00317A;
+  --m3: #0067B2;
+  --m4: #009CDE;
+  --m5: #7BCAED;
+  --m6: #E1F4FF;
+  --s1: #080C13;
+  --s2: #2C3038;
+  --s3: #6B7077;
+  --s4: #A4A7AB;
+  --white: #FFFFFF;
+  --green: #36A058;
+  --yellow: #F6A900;
+  --red: #DA2025;
+  --purple: #8B5CF6;
+  --cyan: #06B6D4;
+}
+
+html { font-size: 16px; }
+
+body {
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--m1);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Background glow orbs */
+body::before, body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.12;
+  z-index: 0;
+  pointer-events: none;
+}
+body::before {
+  width: 500px; height: 500px;
+  background: var(--m3);
+  top: -100px; right: -100px;
+}
+body::after {
+  width: 400px; height: 400px;
+  background: var(--m4);
+  bottom: -50px; left: -50px;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 48px;
+}
+.logo svg { height: 28px; width: auto; }
+.header-badge {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--s4);
+  letter-spacing: 0.05em;
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 9999px;
+}
+
+/* Title section */
+.title-section { margin-bottom: 40px; }
+.title-section h1 {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+.title-section h1 span { color: var(--m4); }
+.title-section p {
+  font-size: 16px;
+  color: var(--s4);
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+/* Input section */
+.input-section {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 48px;
+}
+.input-group {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 20px;
+  transition: border-color 250ms ease, box-shadow 250ms ease;
+}
+.input-group:focus-within {
+  border-color: var(--m3);
+  box-shadow: 0 0 0 3px rgba(0,103,178,0.15);
+}
+.input-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--s3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+.input-field {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--white);
+  font-family: inherit;
+  transition: border-color 250ms ease, box-shadow 250ms ease;
+  outline: none;
+}
+.input-field:focus {
+  border-color: var(--m3);
+  box-shadow: 0 0 0 3px rgba(0,103,178,0.2);
+}
+.input-suffix {
+  font-size: 13px;
+  color: var(--s3);
+  margin-top: 6px;
+}
+
+/* Results grid */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.roi-card {
+  padding: 24px 20px;
+  border-radius: 12px;
+  border: 1px solid;
+  text-align: center;
+  transition: transform 250ms ease, box-shadow 250ms ease;
+}
+.roi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,103,178,0.12);
+}
+.roi-value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.roi-label {
+  font-size: 13px;
+  color: var(--s4);
+  font-weight: 400;
+}
+
+/* Card color themes */
+.roi-card--blue { background: rgba(27,146,255,0.06); border-color: rgba(27,146,255,0.15); }
+.roi-card--blue .roi-value { color: var(--m4); }
+
+.roi-card--green { background: rgba(54,160,104,0.06); border-color: rgba(54,160,104,0.15); }
+.roi-card--green .roi-value { color: var(--green); }
+
+.roi-card--purple { background: rgba(139,92,246,0.06); border-color: rgba(139,92,246,0.15); }
+.roi-card--purple .roi-value { color: var(--purple); }
+
+.roi-card--cyan { background: rgba(6,182,212,0.06); border-color: rgba(6,182,212,0.15); }
+.roi-card--cyan .roi-value { color: var(--cyan); }
+
+.roi-card--yellow { background: rgba(246,169,0,0.06); border-color: rgba(246,169,0,0.15); }
+.roi-card--yellow .roi-value { color: var(--yellow); }
+
+/* Total card */
+.total-card {
+  margin-bottom: 24px;
+  text-align: center;
+  padding: 32px;
+  background: linear-gradient(135deg, rgba(0,103,178,0.1), rgba(54,160,104,0.08));
+  border: 1.5px solid rgba(0,103,178,0.3);
+  border-radius: 16px;
+}
+.total-label {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--s3);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.total-value {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -1px;
+  text-shadow: 0 0 30px rgba(0,156,222,0.2);
+}
+
+/* Formulas */
+.calc-basis {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 20px 24px;
+  font-size: 13px;
+  color: var(--s4);
+  line-height: 1.9;
+}
+.calc-basis p { margin: 0; }
+.calc-basis strong { color: var(--s4); font-weight: 600; }
+.calc-basis .basis-header { color: var(--white); font-weight: 600; }
+.calc-basis .source {
+  margin-top: 8px;
+  opacity: 0.5;
+  font-size: 12px;
+}
+
+/* Footer */
+.footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.footer-text {
+  font-size: 13px;
+  color: var(--s3);
+}
+.footer-logo svg { height: 20px; opacity: 0.4; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .input-section { grid-template-columns: repeat(2, 1fr); }
+  .results-grid { grid-template-columns: repeat(2, 1fr); }
+  .title-section h1 { font-size: 28px; }
+  .total-value { font-size: 40px; }
+  .roi-value { font-size: 22px; }
+  .header-badge { display: none; }
+}
+@media (max-width: 480px) {
+  .input-section { grid-template-columns: 1fr; }
+  .results-grid { grid-template-columns: 1fr; }
+  .container { padding: 32px 16px 60px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <svg viewBox="0 0 960 276.9" xmlns="http://www.w3.org/2000/svg"><g fill="#FFF"><path d="M244.3,93.9h30.5V2.1H183v30.5h61.3V93.9z M30.5,185.1H0v91.8h91.8v-30.5H30.5V185.1z M274.8,185.1h-30.5V233 L30.5,2.1H0v91.8h30.5V45.7l213.7,231.1h30.5L274.8,185.1z"/><path d="M467.4,0c-15.3,0-25.3,7.5-29.8,16.7V2.1h-25.4v91.8h25.4v-53c0-13.5,8.2-20.2,19.1-20.2 c11.2,0,16.1,6,16.1,18.4v54.7h25.4V35.4C498.3,10.9,485.5,0,467.4,0z M557.3,0c-26.7,0-47.2,18.8-47.2,47.7v1.4 c0,29.3,20.2,46.7,47.9,46.7c25.1,0,40.9-11.1,43.9-30.9h-24c-1.6,7.7-7.4,12.8-19.1,12.8c-13.9,0-22.1-8.8-22.8-24h66.2v-7 C602.1,13.9,581,0,557.3,0z M536.3,38.1c1.9-13,9.7-20.5,21.1-20.5c12.1,0,19.1,6.7,20,20.5H536.3z M813.3,0 c-27.5,0-48.4,18.8-48.4,47.6V49c0,28.6,20.9,46.8,48.3,46.8c27.5,0,48.4-18.4,48.4-47.4V47C861.5,18.4,840.8,0,813.3,0z M835.7,48.6c0,17.4-8.2,27.9-22.5,27.9c-14.4,0-22.5-10.5-22.5-28.1V47c0-17.5,8.4-27.7,22.5-27.7c14.2,0,22.5,10.5,22.5,28.1 V48.6z M929.1,0c-15.3,0-25.3,7.5-29.8,16.7V2.1h-25.4v91.8h25.4v-53c0-13.5,8.2-20.2,19.1-20.2c11.2,0,16.1,6,16.1,18.4v54.7H960 V35.4C960,10.9,947.2,0,929.1,0z M730.6,19.7V2.1h-25.4v91.8h25.4v-46c0-17.5,10.9-23.7,29.7-23.5V0.7 C745.4,0.9,736.4,7.4,730.6,19.7z M650.9,67.7L629,2.1h-27.2l33.5,91.8h28.6l33.3-91.8h-24.6L650.9,67.7z"/></g></svg>
+    </div>
+    <div class="header-badge">ROI Kalkulator</div>
+  </div>
+
+  <!-- Title -->
+  <div class="title-section">
+    <h1>Ocenjena letna korist <span>Nevron Mobile</span></h1>
+    <p>Vnesite podatke o hotelu in kalkulator bo izračunal projicirano letno korist na podlagi industrijskih podatkov.</p>
+  </div>
+
+  <!-- Inputs -->
+  <div class="input-section">
+    <div class="input-group">
+      <label class="input-label" for="rooms">Število sob</label>
+      <input class="input-field" type="number" id="rooms" value="143" min="1" max="2000">
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="adr">ADR (EUR)</label>
+      <input class="input-field" type="number" id="adr" value="150" min="1" max="5000">
+      <div class="input-suffix">Povprečna dnevna cena</div>
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="occupancy">Zasedenost (%)</label>
+      <input class="input-field" type="number" id="occupancy" value="65" min="1" max="100">
+    </div>
+    <div class="input-group">
+      <label class="input-label" for="fte">Recepcija (FTE)</label>
+      <input class="input-field" type="number" id="fte" value="4" min="1" max="50">
+      <div class="input-suffix">Zaposleni na recepciji</div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-grid">
+    <div class="roi-card roi-card--blue">
+      <div class="roi-value" id="val-ocena">EUR 339.270</div>
+      <div class="roi-label">Učinek višje ocene</div>
+    </div>
+    <div class="roi-card roi-card--green">
+      <div class="roi-value" id="val-upsell">EUR 101.781</div>
+      <div class="roi-label">Prihodki iz upsella</div>
+    </div>
+    <div class="roi-card roi-card--purple">
+      <div class="roi-value" id="val-early">EUR 76.336</div>
+      <div class="roi-label">Early check-in / late checkout</div>
+    </div>
+    <div class="roi-card roi-card--cyan">
+      <div class="roi-value" id="val-skip">EUR 50.890</div>
+      <div class="roi-label">Skip room cleaning</div>
+    </div>
+    <div class="roi-card roi-card--green">
+      <div class="roi-value" id="val-recepcija">EUR 19.152</div>
+      <div class="roi-label">Prihranek časa recepcije (60%)</div>
+    </div>
+    <div class="roi-card roi-card--yellow">
+      <div class="roi-value" id="val-tisk">EUR 4.400</div>
+      <div class="roi-label">Prihranek tiska (digitalizacija)</div>
+    </div>
+  </div>
+
+  <!-- Total -->
+  <div class="total-card">
+    <div class="total-label">Skupna letna korist</div>
+    <div class="total-value" id="val-total">EUR 591.829</div>
+  </div>
+
+  <!-- Formulas -->
+  <div class="calc-basis">
+    <p class="basis-header" id="calc-osnova">Osnova: 143 sob &times; 365 dni &times; 65% zasedenost = 33.927 letnih nočitev &nbsp;|&nbsp; ADR: EUR 150</p>
+    <p id="calc-ocena">Učinek višje ocene: 33.927 &times; EUR 10 = EUR 339.270</p>
+    <p id="calc-upsell">Upsell: 33.927 &times; EUR 150 &times; 2% = EUR 101.781</p>
+    <p id="calc-early">Early/late: 33.927 &times; 5% &times; EUR 45 = EUR 76.336</p>
+    <p id="calc-skip">Skip cleaning: 33.927 &times; 15% &times; EUR 10 = EUR 50.890</p>
+    <p id="calc-recepcija">Recepcija: 4 FTE &times; EUR 1.900/mes &times; 12 &times; 35% &times; 60% = EUR 19.152</p>
+    <p>Tisk: EUR 4.400 (pavšalna ocena)</p>
+    <p class="source">Vir: STR Benchmark (costar.com/products/str-benchmark)</p>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-text">nevron.co</div>
+    <div class="footer-logo">
+      <svg viewBox="0 0 960 276.9" xmlns="http://www.w3.org/2000/svg"><g fill="#FFF"><path d="M244.3,93.9h30.5V2.1H183v30.5h61.3V93.9z M30.5,185.1H0v91.8h91.8v-30.5H30.5V185.1z M274.8,185.1h-30.5V233 L30.5,2.1H0v91.8h30.5V45.7l213.7,231.1h30.5L274.8,185.1z"/><path d="M467.4,0c-15.3,0-25.3,7.5-29.8,16.7V2.1h-25.4v91.8h25.4v-53c0-13.5,8.2-20.2,19.1-20.2 c11.2,0,16.1,6,16.1,18.4v54.7h25.4V35.4C498.3,10.9,485.5,0,467.4,0z M557.3,0c-26.7,0-47.2,18.8-47.2,47.7v1.4 c0,29.3,20.2,46.7,47.9,46.7c25.1,0,40.9-11.1,43.9-30.9h-24c-1.6,7.7-7.4,12.8-19.1,12.8c-13.9,0-22.1-8.8-22.8-24h66.2v-7 C602.1,13.9,581,0,557.3,0z M536.3,38.1c1.9-13,9.7-20.5,21.1-20.5c12.1,0,19.1,6.7,20,20.5H536.3z M813.3,0 c-27.5,0-48.4,18.8-48.4,47.6V49c0,28.6,20.9,46.8,48.3,46.8c27.5,0,48.4-18.4,48.4-47.4V47C861.5,18.4,840.8,0,813.3,0z M835.7,48.6c0,17.4-8.2,27.9-22.5,27.9c-14.4,0-22.5-10.5-22.5-28.1V47c0-17.5,8.4-27.7,22.5-27.7c14.2,0,22.5,10.5,22.5,28.1 V48.6z M929.1,0c-15.3,0-25.3,7.5-29.8,16.7V2.1h-25.4v91.8h25.4v-53c0-13.5,8.2-20.2,19.1-20.2c11.2,0,16.1,6,16.1,18.4v54.7H960 V35.4C960,10.9,947.2,0,929.1,0z M730.6,19.7V2.1h-25.4v91.8h25.4v-46c0-17.5,10.9-23.7,29.7-23.5V0.7 C745.4,0.9,736.4,7.4,730.6,19.7z M650.9,67.7L629,2.1h-27.2l33.5,91.8h28.6l33.3-91.8h-24.6L650.9,67.7z"/></g></svg>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function fmt(n) {
+  return 'EUR ' + Math.round(n).toLocaleString('de-DE');
+}
+
+function fmtN(n) {
+  return Math.round(n).toLocaleString('de-DE');
+}
+
+function calculate() {
+  const rooms = parseInt(document.getElementById('rooms').value) || 0;
+  const adr = parseInt(document.getElementById('adr').value) || 0;
+  const occ = parseInt(document.getElementById('occupancy').value) || 0;
+  const fte = parseInt(document.getElementById('fte').value) || 0;
+
+  const nights = Math.round(rooms * 365 * (occ / 100));
+
+  const ocena = nights * 10;
+  const upsell = nights * adr * 0.02;
+  const early = nights * 0.05 * 45;
+  const skip = nights * 0.15 * 10;
+  const recepcija = fte * 1900 * 12 * 0.35 * 0.60;
+  const tisk = 4400;
+  const total = ocena + upsell + early + skip + recepcija + tisk;
+
+  document.getElementById('val-ocena').textContent = fmt(ocena);
+  document.getElementById('val-upsell').textContent = fmt(upsell);
+  document.getElementById('val-early').textContent = fmt(early);
+  document.getElementById('val-skip').textContent = fmt(skip);
+  document.getElementById('val-recepcija').textContent = fmt(recepcija);
+  document.getElementById('val-tisk').textContent = fmt(tisk);
+  document.getElementById('val-total').textContent = fmt(total);
+
+  document.getElementById('calc-osnova').innerHTML =
+    '<strong>Osnova:</strong> ' + rooms + ' sob &times; 365 dni &times; ' + occ + '% zasedenost = ' + fmtN(nights) + ' letnih nočitev &nbsp;|&nbsp; ADR: EUR ' + adr;
+  document.getElementById('calc-ocena').textContent =
+    'Učinek višje ocene: ' + fmtN(nights) + ' \u00d7 EUR 10 = ' + fmt(ocena);
+  document.getElementById('calc-upsell').textContent =
+    'Upsell: ' + fmtN(nights) + ' \u00d7 EUR ' + adr + ' \u00d7 2% = ' + fmt(upsell);
+  document.getElementById('calc-early').textContent =
+    'Early/late: ' + fmtN(nights) + ' \u00d7 5% \u00d7 EUR 45 = ' + fmt(early);
+  document.getElementById('calc-skip').textContent =
+    'Skip cleaning: ' + fmtN(nights) + ' \u00d7 15% \u00d7 EUR 10 = ' + fmt(skip);
+  document.getElementById('calc-recepcija').textContent =
+    'Recepcija: ' + fte + ' FTE \u00d7 EUR 1.900/mes \u00d7 12 \u00d7 35% \u00d7 60% = ' + fmt(recepcija);
+}
+
+document.querySelectorAll('.input-field').forEach(function(input) {
+  input.addEventListener('input', calculate);
+});
+
+calculate();
+</script>
+
+</body>
+</html>
